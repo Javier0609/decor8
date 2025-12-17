@@ -35,6 +35,8 @@ android.minapi = 21
 
 # API objetivo
 android.api = 33
+# buildozer.spec
+android.ndk_path = /usr/local/lib/android/sdk/ndk/27.3.13750724
 
 # NDK
 android.ndk = 25b
