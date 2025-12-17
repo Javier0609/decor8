@@ -1,0 +1,150 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch: # Permite ejecución manual
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 120
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.9"
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            git \
+            zip \
+            unzip \
+            curl \
+            openjdk-11-jdk \
+            python3-pip \
+            autoconf \
+            libtool \
+            pkg-config \
+            zlib1g-dev \
+            libncurses5-dev \
+            libncursesw5-dev \
+            libtinfo5 \
+            cmake \
+            libffi-dev \
+            libssl-dev \
+            libltdl-dev \
+            ffmpeg \
+            libsdl2-dev \
+            libsdl2-image-dev \
+            libsdl2-mixer-dev \
+            libsdl2-ttf-dev \
+            libportmidi-dev \
+            libswscale-dev \
+            libavformat-dev \
+            libavcodec-dev \
+            libjpeg-dev \
+            libfreetype6-dev
+
+      - name: Install Buildozer and dependencies
+        run: |
+          pip install --user buildozer==1.5.0 cython==0.29.33
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Cache Buildozer dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.buildozer
+            ~/.android
+            .buildozer
+          key: ${{ runner.os }}-buildozer-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildozer-
+
+      - name: Setup Android SDK
+        run: |
+          mkdir -p ~/.android
+          touch ~/.android/repositories.cfg
+
+      - name: Create required directories and files
+        run: |
+          mkdir -p assets data
+
+          # Crear icono por defecto si no existe
+          if [ ! -f "assets/icon.png" ]; then
+            echo "Creando icono por defecto..."
+            sudo apt-get install -y imagemagick
+            convert -size 512x512 xc:#0a0f14 assets/icon.png || echo "No se pudo crear icono"
+          fi
+
+          # Crear imágenes de ejemplo si no existen
+          for img in sofa.png mesa.png lampara.png silla.png estanteria.png cama.png; do
+            if [ ! -f "assets/$img" ]; then
+              convert -size 200x200 xc:#2a3b4c "assets/$img" || echo "No se pudo crear $img"
+            fi
+          done
+
+      - name: Initialize Buildozer
+        run: |
+          if [ ! -f "buildozer.spec" ]; then
+            echo "ERROR: No se encontró buildozer.spec"
+            exit 1
+          fi
+          echo "✓ buildozer.spec encontrado"
+
+      - name: Build APK (Debug)
+        run: |
+          echo "=== INICIANDO COMPILACIÓN ==="
+
+          # Limpiar build anterior
+          buildozer android clean 2>/dev/null || true
+
+          # Compilar APK debug
+          echo "Compilando APK debug (esto puede tardar 30-60 minutos)..."
+          buildozer -v android debug 2>&1 | tee build.log
+
+          # Verificar si se creó la APK
+          if ls bin/*.apk 1> /dev/null 2>&1; then
+            echo "✅ APK generada exitosamente!"
+            ls -la bin/*.apk
+            echo "Tamaño de la APK:"
+            du -h bin/*.apk
+          else
+            echo "❌ ERROR: No se generó la APK"
+            echo "Últimas líneas del log:"
+            tail -100 build.log
+            exit 1
+          fi
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: dercor8-apk
+          path: bin/*.apk
+
+      - name: Upload build logs
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-logs
+          path: |
+            build.log
+            .buildozer/*.log
+            .buildozer/android/platform/*/build.log
+
+      - name: Success notification
+        if: success()
+        run: |
+          echo "🎉 ¡Compilación exitosa!"
+          echo "La APK está disponible en la sección 'Artifacts'"
+          echo "Visita: https://github.com/${{ github.repository }}/actions"

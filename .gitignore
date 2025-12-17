@@ -1,0 +1,32 @@
+# Buildozer
+.buildozer/
+bin/
+*.apk
+*.apks
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+
+# Database
+*.db
+*.sqlite3
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Kivy
+*.log
+.kivy/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
