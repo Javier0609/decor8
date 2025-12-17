@@ -48,8 +48,8 @@ android.minsdk = 21
 # Color de pantalla de carga
 android.presplash_color = #0a0f14
 
-# Ícono (asegúrate de tener assets/icon.png)
-icon.filename = assets/icon.png
+# Ícono (asegúrate de tener assets/logo.png)
+icon.filename = assets/logo.png
 
 # Modo ventana
 fullscreen = 0

@@ -81,10 +81,10 @@ jobs:
           mkdir -p assets data
 
           # Crear icono por defecto si no existe
-          if [ ! -f "assets/icon.png" ]; then
+          if [ ! -f "assets/logo.png" ]; then
             echo "Creando icono por defecto..."
             sudo apt-get install -y imagemagick
-            convert -size 512x512 xc:#0a0f14 assets/icon.png || echo "No se pudo crear icono"
+            convert -size 512x512 xc:#0a0f14 assets/logo.png || echo "No se pudo crear icono"
           fi
 
           # Crear imágenes de ejemplo si no existen
