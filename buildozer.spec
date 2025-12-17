@@ -34,10 +34,10 @@ android.permissions = INTERNET,WRITE_EXTERNAL_STORAGE,READ_EXTERNAL_STORAGE,WAKE
 android.minapi = 21
 
 # API objetivo
-android.api = 31
+android.api = 33
 
 # NDK
-android.ndk = 23b
+android.ndk = 25b
 
 # SDK
 android.sdk = 33
